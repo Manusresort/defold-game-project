@@ -1,0 +1,29 @@
+name: Build Defold Project
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Setup Defold
+        uses: dapetcu21/setup-defold@v3
+        with:
+          version: "1.4.0" # Replace with your Defold version
+      
+      - name: Build project
+        run: |
+          java -jar $DEFOLD_BOOSTRAP_COLLECTION resolve
+          java -jar $DEFOLD_BOOSTRAP_COLLECTION build
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: game-build
+          path: build/
