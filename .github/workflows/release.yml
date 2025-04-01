@@ -1,0 +1,45 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Setup Defold
+        uses: dapetcu21/setup-defold@v3
+        with:
+          version: "1.4.0" # Replace with your Defold version
+      
+      - name: Build project
+        run: |
+          java -jar $DEFOLD_BOOSTRAP_COLLECTION resolve
+          java -jar $DEFOLD_BOOSTRAP_COLLECTION --platform html5 bundle
+          java -jar $DEFOLD_BOOSTRAP_COLLECTION --platform win32 bundle
+          java -jar $DEFOLD_BOOSTRAP_COLLECTION --platform darwin bundle
+      
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./bundle/
+          asset_name: game-bundles.zip
+          asset_content_type: application/zip
